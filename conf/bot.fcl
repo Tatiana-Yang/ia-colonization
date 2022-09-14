@@ -1,0 +1,49 @@
+FUNCTION_BLOCK bot	// Définition du bloc (1 bloc par fichier)
+
+VAR_INPUT				// Variables en entrée
+	metamorphosis : REAL;
+	field : REAL;
+END_VAR
+
+VAR_OUTPUT				// Variable en sortie
+	robotHealth : REAL;
+END_VAR
+
+FUZZIFY metamorphosis			// Variable en entrée "fuzzifiée"
+	TERM limited := (0,1) (1,1) (5,0);
+    TERM small := (1,0) (5,1) (10,1) (15,0);
+    TERM medium := (10,0) (15,1) (50,1) (60,0);
+    TERM large := (50,0) (60,1) (75,1) (85,0);
+    TERM important := (75,0) (85,1);
+END_FUZZIFY
+
+FUZZIFY field			// Variable en entrée "fuzzifiée"
+	TERM impassable := gauss 80 2;
+END_FUZZIFY
+
+DEFUZZIFY robotHealth			// Variable en sortie "défuzzifiée"
+	TERM destroyed := (0,1) (5,1) (15,0);
+	TERM hurt := (5,0) (15,1) (50,1) (60,0);
+	TERM healthy := (50,0) (60,1);
+	METHOD : COG;		// Utilise le centre de gravité pour la défuzzification
+	DEFAULT := 0;		// Valeur par défaut (aucune règle ne lance la défuzzification)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Utilise 'min' pour le 'ET' ('max' pour 'OU')
+	ACT : MIN;			// Utilise 'min' comme méthode d'activation
+	ACCU : MAX;			// Utilise 'max' comme méthode d'accumulation
+
+	RULE 13 : IF metamorphosis IS limited AND field IS impassable THEN robotHealth IS destroyed;
+    RULE 14 : IF metamorphosis IS limited AND field  IS NOT impassable THEN robotHealth IS healthy;
+    RULE 15 : IF metamorphosis IS small AND field IS impassable THEN robotHealth IS destroyed;
+    RULE 16 : IF metamorphosis IS small AND field IS NOT impassable THEN robotHealth IS healthy;
+    RULE 17 : IF metamorphosis IS medium AND field IS impassable THEN robotHealth IS destroyed;
+    RULE 18 : IF metamorphosis IS medium AND field IS NOT impassable THEN robotHealth IS hurt;
+    RULE 19 : IF metamorphosis IS large AND field IS impassable THEN robotHealth IS destroyed;
+    RULE 20 : IF metamorphosis IS large AND field IS NOT impassable THEN robotHealth IS hurt;
+    RULE 21 : IF metamorphosis IS important AND field IS impassable THEN robotHealth IS destroyed;
+    RULE 22 : IF metamorphosis IS important AND field IS NOT impassable THEN robotHealth IS destroyed;
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK

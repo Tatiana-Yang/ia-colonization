@@ -1,0 +1,55 @@
+FUNCTION_BLOCK planet	// Définition du bloc (1 bloc par fichier)
+
+VAR_INPUT				// Variables en entrée
+	mineral : REAL;
+	lake : REAL;
+END_VAR
+
+VAR_OUTPUT				// Variable en sortie
+	metamorphosis : REAL;
+END_VAR
+
+FUZZIFY mineral			// Variable en entrée "fuzzifiée"
+	TERM small := (0,1) (10,1) (20,0);
+	TERM medium := (10,0) (20,1) (40,1) (60,0);
+	TERM large := (40,0) (60,1);
+END_FUZZIFY
+
+FUZZIFY lake			// Variable en entrée "fuzzifiée"
+	TERM insignificant := (0, 1) (8, 1) (14,0);
+	TERM small := (8,0) (14,1) (36,1) (44,0);
+	TERM medium := (36,0) (44,1) (66,1) (72,0);
+	TERM large := (66,0) (72,1);
+END_FUZZIFY
+
+DEFUZZIFY metamorphosis			// Variable en sortie "défuzzifiée"
+	TERM limited := (0,1) (1,1) (5,0);
+	TERM small := (1,0) (5,1) (10,1) (15,0);
+	TERM medium := (10,0) (15,1) (50,1) (60,0);
+	TERM large := (50,0) (60,1) (75,1) (85,0);
+	TERM important := (75,0) (85,1);
+	METHOD : COG;		// Utilise le centre de gravité pour la défuzzification
+	DEFAULT := 0;		// Valeur par défaut (aucune règle ne lance la défuzzification)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Utilise 'min' pour le 'ET' ('max' pour 'OU')
+	ACT : MIN;			// Utilise 'min' comme méthode d'activation
+	ACCU : MAX;			// Utilise 'max' comme méthode d'accumulation
+
+	RULE 1 : IF mineral IS small AND lake IS insignificant THEN metamorphosis IS limited;
+	RULE 2 : IF mineral IS small AND lake IS small THEN metamorphosis IS small;
+    RULE 3 : IF mineral IS small AND lake IS medium THEN metamorphosis IS small;
+    RULE 4 : IF mineral IS small AND lake IS large THEN metamorphosis IS medium;
+    RULE 5 : IF mineral IS medium AND lake IS insignificant THEN metamorphosis IS medium;
+    RULE 6 : IF mineral IS medium AND lake IS small THEN metamorphosis IS medium;
+    RULE 7 : IF mineral IS medium AND lake IS medium THEN metamorphosis IS medium;
+    RULE 8 : IF mineral IS medium AND lake IS large THEN metamorphosis IS medium;
+    RULE 9 : IF mineral IS large AND lake IS insignificant THEN metamorphosis IS large;
+    RULE 10 : IF mineral IS large AND lake IS small THEN metamorphosis IS large;
+    RULE 11 : IF mineral IS large AND lake IS medium THEN metamorphosis IS important;
+    RULE 12 : IF mineral IS large AND lake IS large THEN metamorphosis IS important;
+
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK

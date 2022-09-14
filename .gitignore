@@ -1,0 +1,5 @@
+.idea
+target/*
+lib
+./src/main/module-info.java
+target/classes/com/example/taticolonization/HelloApplication.class
